@@ -43,7 +43,7 @@ export const sidelinks: SideLink[] = [
   },
   {
     title: 'Orders',
-    href: '/tasks',
+    href: '/orders',
     icon: <IconTruckDelivery size={18} />,
   },
   {
