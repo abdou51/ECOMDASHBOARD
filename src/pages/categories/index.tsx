@@ -10,6 +10,8 @@ import { DataTableColumnHeader } from './components/data-table-column-header'
 import { DataTableRowActions } from './components/data-table-row-actions'
 import { Button } from '../../components/custom/button'
 import axios from 'axios'
+import { useToast } from '@/components/ui/use-toast'
+
 import {
   Dialog,
   DialogContent,
@@ -92,6 +94,7 @@ export default function DeliveryPricing() {
   const [categories, setCategories] = useState<Category[]>([])
 
   // api state
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -131,24 +134,26 @@ export default function DeliveryPricing() {
 
   const handleSubmit = async () => {
     try {
-      console.log(categoryEnglishName)
-      if (
-        categoryEnglishName === '' &&
-        categoryFrenchName === '' &&
-        categoryArabicName === ''
-      ) {
-        return
-      }
       const response = await axios.post(`http://localhost:3000/categories/`, {
         engName: categoryEnglishName,
         frName: categoryFrenchName,
         arName: categoryArabicName,
       })
-      console.log('Update successful:', response.data)
       setCategories([response.data, ...categories])
-      setOpenDialog(false)
+      toast({
+        variant: 'default',
+        className: 'bg-green-500',
+        title: 'Success',
+        description: 'Category added successfully.',
+      })
     } catch (error) {
-      console.error('Failed to update wilaya:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to add category. Please try again.',
+      })
+    } finally {
+      setOpenDialog(false)
     }
   }
 

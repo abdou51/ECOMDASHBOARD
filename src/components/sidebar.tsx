@@ -45,12 +45,11 @@ export default function Sidebar2({
         <LayoutHeader className='sticky top-0 justify-between px-4 py-3 shadow md:px-4'>
           <div className={`flex items-center ${!isCollapsed ? 'gap-2' : ''}`}>
             <div
-              className={`flex flex-col justify-end truncate ${isCollapsed ? 'invisible w-0' : 'visible w-auto'}`}
+              className={`flex-coltruncate flex  ${isCollapsed ? 'invisible w-0' : 'visible w-auto'}`}
             >
-              <span className='text-xl font-medium'>Welcome Back</span>
+              <span className='text-xl font-medium'>Arela Clothsy</span>
             </div>
           </div>
-
           {/* Toggle Button in mobile */}
           <Button
             variant='ghost'

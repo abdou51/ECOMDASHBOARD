@@ -6,6 +6,15 @@ import { Button } from '@/components/custom/button'
 import { useToast } from '@/components/ui/use-toast'
 import { ReloadIcon } from '@radix-ui/react-icons'
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -28,6 +37,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Command, CommandGroup, CommandItem } from '@/components/ui/command'
+import { Separator } from '@/components/ui/separator'
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -57,6 +67,7 @@ export function DataTableRowActions<TData>({
 
   // Edit and Delete Dialogs States
   const [openEditDialog, setOpenEditDialog] = useState(false)
+  const [openViewDialog, setOpenViewDialog] = useState(false)
   const [open, setOpen] = useState(false)
 
   // Loading and Error States
@@ -131,12 +142,130 @@ export function DataTableRowActions<TData>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-[160px]'>
+          <DropdownMenuItem onClick={() => setOpenViewDialog(true)}>
+            View Details
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenEditDialog(true)}>
-            Edit
+            Update Status
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
+      <Dialog open={openViewDialog} onOpenChange={setOpenViewDialog}>
+        <DialogContent className='sm:max-w-[850px]'>
+          <DialogHeader>
+            <DialogTitle>
+              Order {order.reference} ( {order.status} )
+            </DialogTitle>
+          </DialogHeader>
+          <Separator orientation='vertical' />
+          <DialogHeader>
+            <DialogTitle>Client Details :</DialogTitle>
+          </DialogHeader>
+          <div className='grid gap-4 py-4'>
+            <div className='grid grid-cols-5 items-center gap-4'>
+              <Label className='col-span-2'>Full Name</Label>
+              <Separator orientation='vertical' className='' />
+              <span className='col-span-2'>{order.fullName}</span>
+            </div>
+            <Separator />
+            <div className='grid grid-cols-5 items-center gap-4'>
+              <Label className='col-span-2'>Shipping Type</Label>
+              <Separator orientation='vertical' className='' />
+              <span
+                className={`col-span-2 font-bold ${order.shippingType === 'home' ? 'text-blue-500' : 'text-green-500'}`}
+              >
+                {order.shippingType}
+              </span>
+            </div>
+            <Separator />
+            <div className='grid grid-cols-5 items-center gap-4'>
+              <Label className='col-span-2'>Address</Label>
+              <Separator orientation='vertical' />
+              <span className='col-span-2'>{order.address}</span>
+            </div>
+            <Separator />
+            <div className='grid grid-cols-5 items-center gap-4'>
+              <Label className='col-span-2'>Wilaya</Label>
+              <Separator orientation='vertical' />
+              <span className='col-span-2'>{order.wilaya}</span>
+            </div>
+            <Separator />
+            <div className='grid grid-cols-5 items-center gap-4'>
+              <Label className='col-span-2'>Commune</Label>
+              <Separator orientation='vertical' />
+              <span className='col-span-2'>{order.commune}</span>
+            </div>
+            <Separator />
+            <div className='grid grid-cols-5 items-center gap-4'>
+              <Label className='col-span-2'>Phone Numbers</Label>
+              <Separator orientation='vertical' />
+              <span className='col-span-2'>
+                {order.phoneNumber1} / {order.phoneNumber2}
+              </span>
+            </div>
+            <Separator />
+            <div className='grid grid-cols-5 items-center gap-4'>
+              <Label className='col-span-2'>Note</Label>
+              <Separator orientation='vertical' />
+              <p className='col-span-2 text-sm'>{order.note}</p>
+            </div>
+          </div>
+          <DialogHeader>
+            <DialogTitle>Product Details :</DialogTitle>
+          </DialogHeader>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Color</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Quantity</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead className='text-right'>Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {order.orderItems?.map((orderItem) => (
+                <TableRow key={orderItem.product?._id}>
+                  <TableCell className='font-medium'>
+                    {orderItem.product?.engName}
+                  </TableCell>
+                  <TableCell>
+                    <div
+                      key={orderItem.hex}
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        backgroundColor: orderItem.hex,
+                        borderRadius: '50%',
+                      }}
+                      title={orderItem.hex}
+                    ></div>
+                  </TableCell>
+                  <TableCell>{orderItem.size}</TableCell>
+                  <TableCell>{orderItem.quantity}</TableCell>
+                  <TableCell>{orderItem.price} Dzd</TableCell>
+                  <TableCell className='text-right'>
+                    {orderItem.price * orderItem.quantity} Dzd
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={5}>Shipping Fees</TableCell>
+                <TableCell className='text-right'>
+                  {order.shippingPrice} Dzd
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={5}>Total</TableCell>
+                <TableCell className='text-right'>{order.total} Dzd</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </DialogContent>
+      </Dialog>
       <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
         <DialogContent className='sm:max-w-[450px]'>
           <DialogHeader>

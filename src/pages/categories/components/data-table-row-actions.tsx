@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
+import { useToast } from '@/components/ui/use-toast'
 import { categorySchema } from '../data/schema'
 import {
   Dialog,
@@ -32,76 +32,104 @@ export function DataTableRowActions<TData>({
   updateCategory,
   deleteCategory,
 }: DataTableRowActionsProps<TData>) {
+  const { toast } = useToast()
+
   const category = categorySchema.parse(row.original)
-  const [categoryName, setCategoryName] = useState(category.name)
+  const [categoryEngName, setCategoryEngName] = useState(category.engName)
+  const [categoryFrName, setCategoryFrName] = useState(category.frName)
+  const [categoryArName, setCategoryArName] = useState(category.arName)
+
   const [openEditDialog, setOpenEditDialog] = useState(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setError] = useState('')
 
   useEffect(() => {
     if (!openEditDialog) {
-      setCategoryName(category.name)
-      setError('')
+      setCategoryEngName(category.engName)
+      setCategoryFrName(category.frName)
+      setCategoryArName(category.arName)
     }
-  }, [openEditDialog, category, errorMessage])
-  useEffect(() => {
-    if (!openDeleteDialog) {
-      setError('')
-    }
-  }, [openDeleteDialog, errorMessage])
-  useEffect(() => {
-    console.log('Current error message:', errorMessage)
-  }, [errorMessage])
+  }, [openEditDialog, category])
 
   const handleEditCategory = async () => {
     try {
       setIsLoading(true)
-      if (categoryName === category.name) {
-        setOpenEditDialog(false)
+      // Check if category names have changed; if not, no need to make a PUT request.
+      if (
+        categoryEngName === category.engName &&
+        categoryFrName === category.frName &&
+        categoryArName === category.arName
+      ) {
+        toast({
+          variant: 'default',
+          className: 'bg-green-500',
+          title: 'Success',
+          description: 'No changes made.',
+        })
         return
       }
       const response = await axios.put(
         `http://localhost:3000/categories/${category._id}`,
         {
-          name: categoryName,
+          engName: categoryEngName,
+          frName: categoryFrName,
+          arName: categoryArName,
         }
       )
       if (response.status !== 200) {
-        setError(response.data.error)
-        setIsLoading(false)
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Error updating category. Please try again.',
+        })
       } else {
         updateCategory(response.data)
-        setIsLoading(false)
-        setOpenEditDialog(false)
+        toast({
+          variant: 'default',
+          className: 'bg-green-500',
+          title: 'Success',
+          description: 'Category updated successfully.',
+        })
       }
     } catch (error) {
-      setError('An Error occurred while updating')
       console.error('Failed to update category:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Error updating category. Please try again.',
+      })
+    } finally {
       setIsLoading(false)
+      setOpenEditDialog(false)
     }
   }
-
   const handleDeleteCategory = async () => {
     try {
       setIsLoading(true)
       const response = await axios.delete(
         `http://localhost:3000/categories/${category._id}`
       )
-      if (response.status !== 200) {
-        setError(response.data.error)
-        setIsLoading(false)
-      } else {
+
+      if (response.status === 200) {
         deleteCategory(response.data)
-        setIsLoading(false)
-        setOpenDeleteDialog(false)
+        toast({
+          variant: 'default',
+          className: 'bg-green-500',
+          title: 'Success',
+          description: 'Category Deleted Successfully',
+        })
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Error deleting Category. Please try again.',
+        })
       }
     } catch (error) {
-      setError('An Error occurred while deleting')
       console.error('Failed to delete category:', error)
+    } finally {
       setIsLoading(false)
-      console.log('hi error')
-      console.log(errorMessage)
+      setOpenDeleteDialog(false)
     }
   }
 
@@ -128,35 +156,56 @@ export function DataTableRowActions<TData>({
       </DropdownMenu>
 
       <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
-        <DialogContent className='sm:max-w-[425px]'>
+        <DialogContent className='sm:max-w-[600px]'>
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
           </DialogHeader>
           <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='name' className='text-right'>
-                Name
+                English Name
               </Label>
               <Input
                 id='name'
-                value={categoryName}
-                onChange={(event) => setCategoryName(event.target.value)}
+                value={categoryEngName}
+                onChange={(event) => setCategoryEngName(event.target.value)}
+                className='col-span-3'
+              />
+              <Label htmlFor='name' className='text-right'>
+                French Name
+              </Label>
+              <Input
+                id='name'
+                value={categoryFrName}
+                onChange={(event) => setCategoryFrName(event.target.value)}
+                className='col-span-3'
+              />
+              <Label htmlFor='name' className='text-right'>
+                Arabic Name
+              </Label>
+              <Input
+                id='name'
+                value={categoryArName}
+                onChange={(event) => setCategoryArName(event.target.value)}
                 className='col-span-3'
               />
             </div>
           </div>
-          {errorMessage && (
-            <h1 className='pl-11 text-xs text-red-500'>{errorMessage}</h1>
-          )}
-
           <DialogFooter>
-            <Button onClick={handleEditCategory} disabled={isLoading}>
+            <Button
+              onClick={handleEditCategory}
+              disabled={
+                isLoading ||
+                !categoryArName ||
+                !categoryEngName ||
+                !categoryFrName
+              }
+            >
               Save changes
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       <Dialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
         <DialogContent>
           <DialogHeader>
@@ -165,9 +214,6 @@ export function DataTableRowActions<TData>({
           <div className='py-4'>
             Are you sure you want to delete this category?
           </div>
-          {errorMessage && (
-            <h1 className='pl-11 text-xs text-red-500'>{errorMessage}</h1>
-          )}
           <DialogFooter>
             <Button variant='ghost' onClick={() => setOpenDeleteDialog(false)}>
               Cancel

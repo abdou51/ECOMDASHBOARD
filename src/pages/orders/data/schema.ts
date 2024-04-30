@@ -9,8 +9,10 @@ export const orderProductSchema = z.object({
 // Define the type for an order item
 export const orderItemSchema = z.object({
   product: orderProductSchema.nullable(),
-  quantity: z.number().nullable(),
-  price: z.number().nullable(),
+  hex: z.string(),
+  size: z.number().default(0),
+  quantity: z.number().default(1),
+  price: z.number().default(0),
   _id: z.string().nullable(),
 })
 
@@ -18,6 +20,8 @@ export const orderItemSchema = z.object({
 export const orderSchema = z.object({
   _id: z.string(),
   note: z.string(),
+  shippingType: z.string(),
+  shippingPrice: z.number().default(0),
   status: z.enum([
     'pending',
     'confirmed',
@@ -30,8 +34,8 @@ export const orderSchema = z.object({
   address: z.string(),
   wilaya: z.string(),
   commune: z.string(),
-  phoneNumber1: z.string(),
-  phoneNumber2: z.string(),
+  phoneNumber1: z.string().default(''),
+  phoneNumber2: z.string().default(''),
   total: z.number(),
   orderItems: z.array(orderItemSchema).nullable(),
   createdAt: z.string(),
