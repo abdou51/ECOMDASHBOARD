@@ -209,10 +209,14 @@ export function DataTableRowActions<TData>({
       <Dialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Category</DialogTitle>
+            <DialogTitle>Delete Category ( {category.engName} )</DialogTitle>
           </DialogHeader>
-          <div className='py-4'>
+          <div className='flex flex-col py-4'>
             Are you sure you want to delete this category?
+            <span className='pt-4 text-red-500'>
+              Deleting this category will also delete all the products liked to
+              this category !
+            </span>
           </div>
           <DialogFooter>
             <Button variant='ghost' onClick={() => setOpenDeleteDialog(false)}>
