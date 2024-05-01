@@ -1,156 +1,55 @@
 import { createBrowserRouter } from 'react-router-dom'
+import RequireAuth from './components/requireAuth'
 import GeneralError from './pages/errors/general-error'
 import NotFoundError from './pages/errors/not-found-error'
 import MaintenanceError from './pages/errors/maintenance-error'
+import OrdersPage from './pages/orders'
+import ProductsPage from '@/pages/products'
+import DeliveryPricingPage from './pages/deliveryPricing'
+import LoginComponent from './pages/auth/sign-in-2'
+import AppShell from './components/app-shell'
+import CategoriesPage from './pages/categories'
 
 const router = createBrowserRouter([
-  // Auth routes
   {
-    path: '/sign-in',
-    lazy: async () => ({
-      Component: (await import('./pages/auth/sign-in')).default,
-    }),
+    path: '/login',
+    element: <LoginComponent />,
   },
-  {
-    path: '/sign-in-2',
-    lazy: async () => ({
-      Component: (await import('./pages/auth/sign-in-2')).default,
-    }),
-  },
-  {
-    path: '/sign-up',
-    lazy: async () => ({
-      Component: (await import('./pages/auth/sign-up')).default,
-    }),
-  },
-  {
-    path: '/forgot-password',
-    lazy: async () => ({
-      Component: (await import('./pages/auth/forgot-password')).default,
-    }),
-  },
-  {
-    path: '/otp',
-    lazy: async () => ({
-      Component: (await import('./pages/auth/otp')).default,
-    }),
-  },
-
-  // Main routes
   {
     path: '/',
-    lazy: async () => {
-      const AppShell = await import('./components/app-shell')
-      return { Component: AppShell.default }
-    },
+    element: (
+      <RequireAuth>
+        <AppShell />
+      </RequireAuth>
+    ),
     errorElement: <GeneralError />,
     children: [
       {
         index: true,
-        lazy: async () => ({
-          Component: (await import('./pages/dashboard')).default,
-        }),
-      },
-      {
-        path: 'orders',
-        lazy: async () => ({
-          Component: (await import('./pages/orders')).default,
-        }),
+        element: <OrdersPage />,
       },
       {
         path: 'products',
-        lazy: async () => ({
-          Component: (await import('@/pages/products')).default,
-        }),
-      },
-      {
-        path: 'apps',
-        lazy: async () => ({
-          Component: (await import('@/pages/apps')).default,
-        }),
+        element: <ProductsPage />,
       },
       {
         path: 'deliverypricing',
-        lazy: async () => ({
-          Component: (await import('@/pages/deliveryPricing')).default,
-        }),
+        element: <DeliveryPricingPage />,
       },
       {
         path: 'categories',
-        lazy: async () => ({
-          Component: (await import('@/pages/categories')).default,
-        }),
-      },
-      {
-        path: 'analysis',
-        lazy: async () => ({
-          Component: (await import('@/components/coming-soon')).default,
-        }),
-      },
-      {
-        path: 'extra-components',
-        lazy: async () => ({
-          Component: (await import('@/pages/extra-components')).default,
-        }),
-      },
-      {
-        path: 'settings',
-        lazy: async () => ({
-          Component: (await import('./pages/settings')).default,
-        }),
-        errorElement: <GeneralError />,
-        children: [
-          {
-            index: true,
-            lazy: async () => ({
-              Component: (await import('./pages/settings/profile')).default,
-            }),
-          },
-          {
-            path: 'account',
-            lazy: async () => ({
-              Component: (await import('./pages/settings/account')).default,
-            }),
-          },
-          {
-            path: 'appearance',
-            lazy: async () => ({
-              Component: (await import('./pages/settings/appearance')).default,
-            }),
-          },
-          {
-            path: 'notifications',
-            lazy: async () => ({
-              Component: (await import('./pages/settings/notifications'))
-                .default,
-            }),
-          },
-          {
-            path: 'display',
-            lazy: async () => ({
-              Component: (await import('./pages/settings/display')).default,
-            }),
-          },
-          {
-            path: 'error-example',
-            lazy: async () => ({
-              Component: (await import('./pages/settings/error-example'))
-                .default,
-            }),
-            errorElement: <GeneralError className='h-[50svh]' minimal />,
-          },
-        ],
+        element: <CategoriesPage />,
       },
     ],
   },
 
   // Error routes
-  { path: '/500', Component: GeneralError },
-  { path: '/404', Component: NotFoundError },
-  { path: '/503', Component: MaintenanceError },
+  { path: '/500', element: <GeneralError /> },
+  { path: '/404', element: <NotFoundError /> },
+  { path: '/503', element: <MaintenanceError /> },
 
   // Fallback 404 route
-  { path: '*', Component: NotFoundError },
+  { path: '*', element: <NotFoundError /> },
 ])
 
 export default router

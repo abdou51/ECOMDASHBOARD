@@ -14,7 +14,7 @@ export async function fetchOrders(params: FetchOrdersParams = {}): Promise<{
 }> {
   try {
     const queryParams = new URLSearchParams()
-
+    const jwt = localStorage.getItem('jwt')
     if (params.page) {
       queryParams.append('page', params.page.toString())
     }
@@ -28,7 +28,13 @@ export async function fetchOrders(params: FetchOrdersParams = {}): Promise<{
       queryParams.append('filter', params.filter.toString())
     }
     const response = await fetch(
-      `http://localhost:3000/orders?${queryParams.toString()}`
+      `http://localhost:3000/orders?${queryParams.toString()}`,
+      {
+        headers: {
+          Authorization: jwt ? `Bearer ${jwt}` : '',
+          'Content-Type': 'application/json',
+        },
+      }
     )
     if (!response.ok) {
       throw new Error('Failed to fetch orders')
