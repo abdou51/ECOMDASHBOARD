@@ -41,7 +41,8 @@ interface FetchProductsParams {
 export default function DeliveryPricing() {
   const handleSubmit = async () => {
     try {
-      let imageUploadPromises = []
+      setLoading(true)
+      const imageUploadPromises = []
       selectedAddColors.forEach((color) => {
         if (color.images && color.images.urls.length > 0) {
           const formData = new FormData()
@@ -75,7 +76,7 @@ export default function DeliveryPricing() {
         frDescription: selectedAddFrDescription,
         engDescription: selectedAddEnDescription,
         arDescription: selectedAddArDescription,
-        category: selectedAddCategory._id,
+        category: selectedAddCategory?._id,
         colors: colorsWithImageIds,
       }
 
@@ -85,9 +86,13 @@ export default function DeliveryPricing() {
       )
       console.log('Product created successfully:', response.data)
       loadProducts()
+      setLoading(false)
+      setOpenDialog(false)
     } catch (error) {
       console.error('Error creating product:', error)
       setError('Failed to submit product data')
+      setLoading(false)
+      setOpenDialog(false)
     }
   }
 
@@ -166,6 +171,7 @@ export default function DeliveryPricing() {
           row={row}
           deleteProduct={deleteProduct}
           updateProduct={updateProduct}
+          categories={categories}
         />
       ),
     },
@@ -238,20 +244,28 @@ export default function DeliveryPricing() {
     loadCategories()
   }, [])
 
-  // useEffect(() => {
-  //   if (!openDialog) {
-  //     setCategoryName('')
-  //   }
-  // }, [openDialog, categoryName])
+  useEffect(() => {
+    if (!openDialog) {
+      setSelectedAddCategory(undefined)
+      setSelectedAddFrName('')
+      setSelectedAddEngName('')
+      setSelectedAddArName('')
+      setSelectedAddPrice(0)
+      setSelectedAddFrDescription('')
+      setSelectedAddEnDescription('')
+      setSelectedAddArDescription('')
+      setSelectedAddSingleColor('')
+      setSelectedAddColors([])
+    }
+  }, [openDialog])
 
   const loadProducts = async () => {
     setLoading(true)
     setError(null)
     try {
-      // Fetch products and extract products and metadata from the response
       const { products: fetchedProducts, metadata: fetchedMetadata } =
         await fetchProducts()
-      setProducts(fetchedProducts) // Update the products state
+      setProducts(fetchedProducts)
       setMetadata(fetchedMetadata)
       setLoading(false)
     } catch (error) {
@@ -395,16 +409,6 @@ export default function DeliveryPricing() {
                                       />
                                     </div>
                                     <div className='col-span-3 flex  gap-2'>
-                                      {/* {colorItem?.images?.urls?.map(
-                                        (image, index) => (
-                                          <img
-                                            key={index}
-                                            src={image}
-                                            alt={`Uploaded ${index + 1}`}
-                                            className='h-auto w-auto max-w-full'
-                                          />
-                                        )
-                                      )} */}
                                       {colorItem?.images?.urls?.length || 0}{' '}
                                       images Selected
                                     </div>
@@ -487,7 +491,6 @@ export default function DeliveryPricing() {
                                                 return color
                                               })
                                             setSelectedAddColors(updatedColors)
-                                            console.log(updatedColors)
                                           }}
                                         />
                                         <div className='col-span-2 flex items-center space-x-2'>
@@ -579,7 +582,7 @@ export default function DeliveryPricing() {
                                   ))}
                                 </div>
                                 <DialogFooter>
-                                  <Button>Save changes</Button>
+                                  <Button>Save changes colors</Button>
                                 </DialogFooter>
                               </DialogContent>
                             </Dialog>
@@ -728,7 +731,22 @@ export default function DeliveryPricing() {
                   </div>
 
                   <DialogFooter>
-                    <Button onClick={handleSubmit}>Create The product</Button>
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={
+                        !selectedAddArName ||
+                        !selectedAddEngName ||
+                        !selectedAddFrName ||
+                        !selectedAddArDescription ||
+                        !selectedAddEnDescription ||
+                        !selectedAddFrDescription ||
+                        !selectedAddCategory ||
+                        selectedAddColors.length === 0 ||
+                        loading
+                      }
+                    >
+                      Create The product
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

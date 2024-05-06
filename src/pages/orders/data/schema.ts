@@ -19,7 +19,7 @@ export const orderItemSchema = z.object({
 // Define the type for an order
 export const orderSchema = z.object({
   _id: z.string(),
-  note: z.string(),
+  note: z.string().optional(),
   shippingType: z.string(),
   shippingPrice: z.number().default(0),
   status: z.enum([
