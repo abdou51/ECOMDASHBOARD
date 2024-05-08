@@ -122,36 +122,17 @@ export function DataTableRowActions<TData>({
       })
     }
   }
-  const handleFileUpload = (event, colorHex) => {
-    const files = Array.from(event.target.files)
-
-    // Update the color's images with the selected files directly in the state
-    setSelectedAddColors((prevColors) =>
-      prevColors.map((color) =>
-        color.hex === colorHex
-          ? {
-              ...color,
-              images: {
-                ...color.images,
-                urls: files, // Store file objects for later processing
-              },
-            }
-          : color
-      )
-    )
-    console.log(selectedAddColors)
-  }
-
   const handleSubmit = async () => {
     try {
       setIsLoading(true)
 
-      // Initialize an array for promises
+      // Initialize an array to collect promises and updated colors
       const imageUploadPromises = []
-      const updatedColors = []
+      const colorsMap = {} // A map to link uploaded IDs to their corresponding color indices
+      const updatedColors = [] // Initialize this array to store the updated colors
 
       // Iterate through each color and handle uploads
-      for (const color of selectedAddColors) {
+      selectedAddColors.forEach((color, index) => {
         // Check if there are any new files to upload
         if (color.images && color.images.urls && color.images.urls.length > 0) {
           const formData = new FormData()
@@ -170,6 +151,8 @@ export function DataTableRowActions<TData>({
                 headers: { 'Content-Type': 'multipart/form-data' },
               })
             )
+            // Map the original index of this color for use after uploads complete
+            colorsMap[imageUploadPromises.length - 1] = index
           } else {
             // No new files added, retain the original images reference
             updatedColors.push({
@@ -184,20 +167,18 @@ export function DataTableRowActions<TData>({
             images: color.images,
           })
         }
-      }
+      })
 
       // Execute all image upload promises
       const imageResponses = await Promise.all(imageUploadPromises)
 
       // Combine newly uploaded images with unchanged colors
-      let index = 0
-      imageResponses.forEach((res) => {
-        // Find the corresponding color and update its images
+      imageResponses.forEach((res, uploadIndex) => {
+        const originalIndex = colorsMap[uploadIndex]
         updatedColors.push({
-          ...selectedAddColors[index],
+          ...selectedAddColors[originalIndex],
           images: res.data._id,
         })
-        index++
       })
 
       // Create the product data to be submitted
@@ -244,6 +225,26 @@ export function DataTableRowActions<TData>({
     }
   }
 
+  const handleFileUpload = (event, colorHex) => {
+    const files = Array.from(event.target.files)
+
+    // Update the color's images with the selected files directly in the state
+    setSelectedAddColors((prevColors) =>
+      prevColors.map((color) =>
+        color.hex === colorHex
+          ? {
+              ...color,
+              images: {
+                ...color.images,
+                urls: files, // Store file objects for later processing
+              },
+            }
+          : color
+      )
+    )
+    console.log(selectedAddColors)
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -279,13 +280,13 @@ export function DataTableRowActions<TData>({
                   {selectedAddColors?.map((colorItem) => (
                     <Dialog
                       open={openColorDetailsDialog === colorItem.hex} // Dialog opens based on this condition
-                      onOpenChange={() =>
+                      onOpenChange={() => {
                         setOpenColorDetailsDialog(
                           openColorDetailsDialog === colorItem.hex
                             ? null
                             : colorItem.hex
                         )
-                      } // Toggle open/close based on current state
+                      }} // Toggle open/close based on current state
                       key={colorItem.hex}
                     >
                       <DialogTrigger>
