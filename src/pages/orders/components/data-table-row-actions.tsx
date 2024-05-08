@@ -151,7 +151,7 @@ export function DataTableRowActions<TData>({
         </DropdownMenuContent>
       </DropdownMenu>
       <Dialog open={openViewDialog} onOpenChange={setOpenViewDialog}>
-        <DialogContent className='sm:max-w-[850px]'>
+        <DialogContent className='overflow-auto sm:max-h-[750px] sm:max-w-[850px]'>
           <DialogHeader>
             <DialogTitle>
               Order {order.reference} ( {order.status} )

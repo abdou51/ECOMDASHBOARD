@@ -47,7 +47,7 @@ export default function DeliveryPricing() {
         if (color.images && color.images.urls.length > 0) {
           const formData = new FormData()
           color.images.urls.forEach((file) => {
-            formData.append('images', file, file.name) // Append file directly
+            formData.append('images', file) // Append file directly
           })
 
           imageUploadPromises.push(
@@ -211,7 +211,9 @@ export default function DeliveryPricing() {
   // ui logic state
   const [openDialog, setOpenDialog] = useState(false)
   const [openColorDialog, setOpenColorDialog] = useState(false)
-  const [openColorDetailsDialog, setOpenColorDetailsDialog] = useState(null)
+  const [openColorDetailsDialog, setOpenColorDetailsDialog] = useState<
+    string | null
+  >(null)
   const [openCombox, setOpenCombobox] = useState(false)
 
   // data api state
@@ -325,13 +327,13 @@ export default function DeliveryPricing() {
                           {selectedAddColors?.map((colorItem) => (
                             <Dialog
                               open={openColorDetailsDialog === colorItem.hex} // Dialog opens based on this condition
-                              onOpenChange={() =>
+                              onOpenChange={() => {
                                 setOpenColorDetailsDialog(
                                   openColorDetailsDialog === colorItem.hex
                                     ? null
                                     : colorItem.hex
                                 )
-                              } // Toggle open/close based on current state
+                              }} // Toggle open/close based on current state
                               key={colorItem.hex}
                             >
                               <DialogTrigger>
@@ -581,9 +583,6 @@ export default function DeliveryPricing() {
                                     </>
                                   ))}
                                 </div>
-                                <DialogFooter>
-                                  <Button>Save changes colors</Button>
-                                </DialogFooter>
                               </DialogContent>
                             </Dialog>
                           ))}

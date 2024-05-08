@@ -4,6 +4,7 @@ import { z } from 'zod'
 
 export const imageSchema = z.object({
   urls: z.array(z.string()),
+  _id: z.string(),
 })
 
 export type Image = z.infer<typeof imageSchema>
@@ -17,7 +18,7 @@ export type Size = z.infer<typeof sizeSchema>
 
 export const colorSchema = z.object({
   hex: z.string(),
-  images: imageSchema,
+  images: imageSchema.optional(),
   sizes: z.array(sizeSchema),
 })
 

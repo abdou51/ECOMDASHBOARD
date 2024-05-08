@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/custom/button'
 import { useToast } from '@/components/ui/use-toast'
 import { ReloadIcon } from '@radix-ui/react-icons'
-import { fetchCategories } from '../../categories/data/api'
 import { Switch } from '@/components/ui/switch'
 import { Category } from '../data/schema'
 import { Separator } from '@/components/ui/separator'
@@ -120,6 +119,127 @@ export function DataTableRowActions<TData>({
         variant: 'destructive',
         title: 'Error',
         description: 'Error deleting product. Please try again.',
+      })
+    }
+  }
+  const handleFileUpload = (event, colorHex) => {
+    const files = Array.from(event.target.files)
+
+    // Update the color's images with the selected files directly in the state
+    setSelectedAddColors((prevColors) =>
+      prevColors.map((color) =>
+        color.hex === colorHex
+          ? {
+              ...color,
+              images: {
+                ...color.images,
+                urls: files, // Store file objects for later processing
+              },
+            }
+          : color
+      )
+    )
+    console.log(selectedAddColors)
+  }
+
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true)
+
+      // Initialize an array for promises
+      const imageUploadPromises = []
+      const updatedColors = []
+
+      // Iterate through each color and handle uploads
+      for (const color of selectedAddColors) {
+        // Check if there are any new files to upload
+        if (color.images && color.images.urls && color.images.urls.length > 0) {
+          const formData = new FormData()
+
+          // Append only new files that have not been uploaded yet
+          for (const file of color.images.urls) {
+            if (file instanceof File) {
+              formData.append('images', file)
+            }
+          }
+
+          // Proceed with uploading only if there are new files in the form data
+          if (formData.has('images')) {
+            imageUploadPromises.push(
+              axios.post('http://localhost:3000/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+              })
+            )
+          } else {
+            // No new files added, retain the original images reference
+            updatedColors.push({
+              ...color,
+              images: color.images,
+            })
+          }
+        } else {
+          // If images haven't changed, retain the original images reference
+          updatedColors.push({
+            ...color,
+            images: color.images,
+          })
+        }
+      }
+
+      // Execute all image upload promises
+      const imageResponses = await Promise.all(imageUploadPromises)
+
+      // Combine newly uploaded images with unchanged colors
+      let index = 0
+      imageResponses.forEach((res) => {
+        // Find the corresponding color and update its images
+        updatedColors.push({
+          ...selectedAddColors[index],
+          images: res.data._id,
+        })
+        index++
+      })
+
+      // Create the product data to be submitted
+      const productData = {
+        frName: selectedAddFrName,
+        engName: selectedAddEngName,
+        arName: selectedAddArName,
+        price: selectedAddPrice,
+        frDescription: selectedAddFrDescription,
+        engDescription: selectedAddEnDescription,
+        arDescription: selectedAddArDescription,
+        category: selectedAddCategory._id,
+        colors: updatedColors,
+      }
+
+      // Send an API request to update the product
+      const response = await axios.put(
+        `http://localhost:3000/products/${product._id}`,
+        productData
+      )
+
+      // Update the product in the parent component
+      updateProduct(response.data)
+
+      // Close the dialog and reset the loading state
+      setIsLoading(false)
+      setOpenEditDialog(false)
+
+      // Optionally, show a success toast
+      toast({
+        title: 'Product updated successfully!',
+        description: `Product ${response.data.engName} has been updated.`,
+      })
+    } catch (error) {
+      console.error('Error updating product:', error)
+      setIsLoading(false)
+
+      // Optionally, show an error toast
+      toast({
+        title: 'Error updating product',
+        description: 'There was a problem updating the product.',
+        variant: 'destructive',
       })
     }
   }
@@ -537,7 +657,7 @@ export function DataTableRowActions<TData>({
             </div>
           </div>
           <DialogFooter>
-            {/* <Button onClick={handleSubmit}>Create The product</Button> */}
+            <Button onClick={handleSubmit}>Update The product</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -545,7 +665,7 @@ export function DataTableRowActions<TData>({
       <Dialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Category</DialogTitle>
+            <DialogTitle>Delete Product</DialogTitle>
           </DialogHeader>
           <div className='py-4'>
             Are you sure you want to delete the product named '{product.engName}
